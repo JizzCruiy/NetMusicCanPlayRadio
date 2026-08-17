@@ -1,0 +1,29 @@
+# Gradle / ForgeGradle
+.gradle/
+build/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+bin/
+
+# Minecraft dev run directories (local test worlds / logs)
+run/
+run-data/
+logs/
+crash-reports/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# Local overrides
+local.properties
