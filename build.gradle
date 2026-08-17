@@ -31,6 +31,17 @@ java {
     toolchain.languageVersion = JavaLanguageVersion.of(17)
 }
 
+// 源码包（sources jar）：只打包 .java 源码，供开发者阅读/调试；源码无混淆概念，无需 reobf。
+// 手动定义以精确控制内容（withSourcesJar 在 ForgeGradle 6 下会把 resources 一并打包且任务创建报错）
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+// build 时一并产出 sources jar
+tasks.named('assemble') {
+    dependsOn 'sourcesJar'
+}
+
 minecraft {
     mappings channel: mapping_channel, version: mapping_version
 
