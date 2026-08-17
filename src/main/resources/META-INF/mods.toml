@@ -1,0 +1,39 @@
+modLoader="javafml"
+loaderVersion="${loader_version_range}"
+license="${mod_license}"
+
+[[mods]]
+modId="${mod_id}"
+version="${mod_version}"
+displayName="${mod_name}"
+authors="${mod_authors}"
+description='''${mod_description}'''
+logoFile="assets/netmusiccanplayradio/icon.png"
+
+# Mixin 配置（注入 NetMusic 的 BigMegaphoneUtil）
+[[mixins]]
+config="${mod_id}.mixins.json"
+
+# 依赖：Forge 1.20.1
+[[dependencies."${mod_id}"]]
+   modId="forge"
+   mandatory=true
+   versionRange="${forge_version_range}"
+   ordering="NONE"
+   side="BOTH"
+
+# 依赖：Minecraft
+[[dependencies."${mod_id}"]]
+   modId="minecraft"
+   mandatory=true
+   versionRange="${minecraft_version_range}"
+   ordering="NONE"
+   side="BOTH"
+
+# 依赖：Net Music（前置，必须 AFTER 加载）
+[[dependencies."${mod_id}"]]
+   modId="netmusic"
+   mandatory=true
+   versionRange="${netmusic_version_range}"
+   ordering="AFTER"
+   side="BOTH"

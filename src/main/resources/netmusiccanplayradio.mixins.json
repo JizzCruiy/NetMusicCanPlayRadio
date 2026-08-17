@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.github.netmusiccanplayradio.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "netmusiccanplayradio.refmap.json",
+  "mixins": [
+    "BigMegaphoneUtilMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
