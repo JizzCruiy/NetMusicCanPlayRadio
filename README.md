@@ -68,6 +68,12 @@ cd NetMusicCanPlayRadio
 | `main` | 1.20.1 | Forge | 当前版本 |
 | `1.21.1-neoforge` | 1.21.1 | NeoForge | 计划中 |
 
+## AI 使用声明 / AI Usage Disclosure
+
+本项目部分代码由 AI 辅助生成，并经人工审查、测试与整合。AI 仅作为开发辅助工具；项目设计、功能决策、测试与维护均由作者（JiltCruiy）负责。特此如实披露。
+
+Some code in this project was generated with the assistance of AI and has been reviewed, tested, and integrated by a human. AI was used solely as a development aid; design, testing, and maintenance are the responsibility of the author (JiltCruiy). This disclosure is provided to comply with platform AI-content policies.
+
 ## 开源协议 / License
 
 [MIT License](LICENSE) - 可自由使用、修改、分发，需保留版权声明。
