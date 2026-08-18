@@ -1,14 +1,8 @@
-// buildscript：MixinGradle（refmap 生成）
-buildscript {
-    repositories {
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
-    }
-}
-
+// 注意：不用 MixinGradle 插件 —— 它与 ForgeGradle 深度绑定（访问 reobf/createMcpToSrg），
+// 在 NeoGradle 7 下会报 "unknown property 'reobf'"。
+// 本 mod 的 mixin 全部 remap=false（目标是 NetMusic 的公共类，不参与 MC 混淆），
+// refmap 实际为空映射，直接以静态空文件放于 resources（见 netmusiccanplayradio.refmap.json），
+// 无需注解处理器生成。
 plugins {
     id 'java-library'
     id 'eclipse'
@@ -17,8 +11,6 @@ plugins {
     // NeoForge 1.21.1 开发插件（NeoGradle 7，与 NetMusic 1.21 分支同款）
     id 'net.neoforged.gradle.userdev' version '7.0.184'
 }
-
-apply plugin: 'org.spongepowered.mixin'
 
 group = mod_group_id
 version = mod_version
@@ -58,11 +50,7 @@ runs {
     }
 }
 
-mixin {
-    add sourceSets.main, "${mod_id}.refmap.json"
-    config "${mod_id}.mixins.json"
-}
-
+// Mixin 的 refmap 为静态空文件（resources 下），无需注解处理器生成
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
@@ -81,8 +69,10 @@ dependencies {
     // 版本见 gradle.properties 的 netmusic_version（1.5.1-neoforge+mc1.21.1）
     implementation "maven.modrinth:net-music:${netmusic_version}-neoforge+mc${minecraft_version}"
 
-    // Mixin 注解处理器（生成 refmap，运行时不打包）
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    // Mixin：编译期注解 API（NeoForge 运行时自带 mixin，故 compileOnly 即可）
+    compileOnly 'org.spongepowered:mixin:0.8.7'
+    // Mixin 注解处理器（生成 refmap；版本与 NeoForge 1.21.1 内置的 mixin 一致）
+    annotationProcessor 'org.spongepowered:mixin:0.8.7:processor'
 }
 
 // 展开 gradle.properties 模板变量到 neoforge.mods.toml / pack.mcmeta
