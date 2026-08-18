@@ -66,7 +66,7 @@ cd NetMusicCanPlayRadio
 | 分支 | MC 版本 | 加载器 | 状态 |
 |---|---|---|---|
 | `main` | 1.20.1 | Forge | 已发布 v0.1.0 |
-| `1.21.1-neoforge` | 1.21.1 | NeoForge | 构建中（未发布） |
+| `1.21.1-neoforge` | 1.21.1 | NeoForge | 已发布 v0.1.0 |
 
 ## AI 使用声明 / AI Usage Disclosure
 
