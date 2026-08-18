@@ -3,9 +3,9 @@ package com.github.netmusiccanplayradio;
 import com.github.netmusiccanplayradio.client.stream.IcecastStreamHandler;
 import com.github.tartaricacid.netmusic.client.api.AudioStreamHandlerManager;
 import com.mojang.logging.LogUtils;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.loading.FMLEnvironment;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.loading.FMLLoader;
 import org.slf4j.Logger;
 
 /**
@@ -24,12 +24,12 @@ public class NetMusicCanPlayRadio {
 
     public NetMusicCanPlayRadio() {
         // 音频解码只在客户端发生；服务端无需注册（且避免在服务端加载客户端侧类）
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLLoader.getDist() == Dist.CLIENT) {
             try {
                 AudioStreamHandlerManager.registerHandler(new IcecastStreamHandler());
                 LOGGER.info("[NetMusicCanPlayRadio] IcecastStreamHandler registered");
             } catch (Throwable t) {
-                // mods.toml 已声明 mandatory 依赖，正常不会走到这里；防御性兜底避免连锁崩溃
+                // neoforge.mods.toml 已声明 required 依赖，正常不会走到这里；防御性兜底避免连锁崩溃
                 LOGGER.error("[NetMusicCanPlayRadio] Failed to register IcecastStreamHandler (NetMusic missing?)", t);
             }
         }

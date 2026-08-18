@@ -22,9 +22,9 @@
 
 | 模组 | 版本 | 说明 |
 |---|---|---|
-| Minecraft | 1.20.1 | Java 17 |
-| Forge | 47.x | ForgeGradle 6 |
-| **Net Music（网络音乐机）** | **1.5.1+，必装** | 本模组无法脱离其运行（mods.toml 已声明 mandatory 依赖） |
+| Minecraft | 1.20.1（Forge）/ 1.21.1（NeoForge） | Java 17 / 21 |
+| 加载器 | Forge 47.x / NeoForge 21.x | ForgeGradle 6 / NeoGradle 7 |
+| **Net Music（网络音乐机）** | **1.5.1+，必装** | 本模组无法脱离其运行（已在 mod 元数据声明 required 依赖） |
 
 > 服务端与客户端都需要安装。
 
@@ -53,7 +53,7 @@ cd NetMusicCanPlayRadio
 ./gradlew build          # 产物在 build/libs/
 ```
 
-> 需要 JDK 17。依赖 Net Music 1.5.1-forge+mc1.20.1 通过 Modrinth Maven 自动拉取，无需手动下载 jar。
+> 需要 JDK 17（`main` 分支）/ JDK 21（`1.21.1-neoforge` 分支）。依赖 Net Music 1.5.1 对应平台版（`1.5.1-forge+mc1.20.1` / `1.5.1-neoforge+mc1.21.1`）通过 Modrinth Maven 自动拉取，无需手动下载 jar。
 
 ## 技术细节 / Technical Details
 
@@ -65,8 +65,8 @@ cd NetMusicCanPlayRadio
 
 | 分支 | MC 版本 | 加载器 | 状态 |
 |---|---|---|---|
-| `main` | 1.20.1 | Forge | 当前版本 |
-| `1.21.1-neoforge` | 1.21.1 | NeoForge | 计划中 |
+| `main` | 1.20.1 | Forge | 已发布 v0.1.0 |
+| `1.21.1-neoforge` | 1.21.1 | NeoForge | 构建中（未发布） |
 
 ## AI 使用声明 / AI Usage Disclosure
 

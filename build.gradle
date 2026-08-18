@@ -1,24 +1,24 @@
+// buildscript：MixinGradle（refmap 生成）
 buildscript {
     repositories {
-        // 插件仓库：Parchment 与 MixinGradle
-        maven { url = 'https://maven.parchmentmc.org' }
         maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
         mavenCentral()
     }
     dependencies {
-        classpath 'org.parchmentmc:librarian:1.+'
         classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
     }
 }
 
 plugins {
+    id 'java-library'
     id 'eclipse'
     id 'idea'
-    id 'net.minecraftforge.gradle' version '[6.0.16,6.2)'
+
+    // NeoForge 1.21.1 开发插件（NeoGradle 7，与 NetMusic 1.21 分支同款）
+    id 'net.neoforged.gradle.userdev' version '7.0.184'
 }
 
 apply plugin: 'org.spongepowered.mixin'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
 
 group = mod_group_id
 version = mod_version
@@ -27,12 +27,9 @@ base {
     archivesName = mod_id
 }
 
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(17)
-}
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-// 源码包（sources jar）：只打包 .java 源码，供开发者阅读/调试；源码无混淆概念，无需 reobf。
-// 手动定义以精确控制内容（withSourcesJar 在 ForgeGradle 6 下会把 resources 一并打包且任务创建报错）
+// 源码包（sources jar）：只打包 .java 源码，供开发者阅读/调试
 tasks.register('sourcesJar', Jar) {
     archiveClassifier = 'sources'
     from sourceSets.main.allJava
@@ -42,31 +39,22 @@ tasks.named('assemble') {
     dependsOn 'sourcesJar'
 }
 
-minecraft {
-    mappings channel: mapping_channel, version: mapping_version
+// 运行部分（NeoGradle 7 风格）
+runs {
+    configureEach {
+        workingDirectory project.file('run')
+        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
+        modSource project.sourceSets.main
+    }
 
-    copyIdeResources = true
+    client {
+        systemProperty 'forge.enabledGameTestNamespaces', mod_id
+    }
 
-    runs {
-        configureEach {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            mods {
-                "${mod_id}" {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        client {
-            property 'forge.enabledGameTestNamespaces', mod_id
-        }
-
-        server {
-            property 'forge.enabledGameTestNamespaces', mod_id
-            args '--nogui'
-        }
+    server {
+        systemProperty 'forge.enabledGameTestNamespaces', mod_id
+        programArgument '--nogui'
     }
 }
 
@@ -78,7 +66,6 @@ mixin {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    maven { url = 'https://maven.shedaniel.me/' }
     maven {
         name = "Modrinth"
         url = "https://api.modrinth.com/maven"
@@ -87,21 +74,21 @@ repositories {
 }
 
 dependencies {
-    // Forge 1.20.1 (JDK 17)
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    // NeoForge 1.21.1 (JDK 21)
+    implementation "net.neoforged:neoforge:${neo_version}"
 
-    // 前置模组 Net Music：通过 Modrinth Maven 引入，fg.deobf 反混淆后引用
-    // 版本见 gradle.properties 的 netmusic_version（1.5.1-forge+mc1.20.1）
-    implementation fg.deobf("maven.modrinth:net-music:${netmusic_version}-forge+mc${minecraft_version}")
+    // 前置模组 Net Music：Modrinth Maven 引入（NeoForge 版 artifact，无需 fg.deobf）
+    // 版本见 gradle.properties 的 netmusic_version（1.5.1-neoforge+mc1.21.1）
+    implementation "maven.modrinth:net-music:${netmusic_version}-neoforge+mc${minecraft_version}"
 
     // Mixin 注解处理器（生成 refmap，运行时不打包）
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
-// 展开 gradle.properties 模板变量到 mods.toml / pack.mcmeta
+// 展开 gradle.properties 模板变量到 neoforge.mods.toml / pack.mcmeta
 tasks.named('processResources', ProcessResources).configure {
     var replaceProperties = [minecraft_version   : minecraft_version, minecraft_version_range: minecraft_version_range,
-                             forge_version       : forge_version, forge_version_range: forge_version_range,
+                             neo_version         : neo_version, neo_version_range: neo_version_range,
                              loader_version_range: loader_version_range,
                              mod_id              : mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
                              mod_authors         : mod_authors, mod_description: mod_description,
@@ -109,7 +96,7 @@ tasks.named('processResources', ProcessResources).configure {
 
     inputs.properties replaceProperties
 
-    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) {
         expand replaceProperties + [project: project]
     }
 }
@@ -124,7 +111,6 @@ tasks.named('jar', Jar).configure {
                     "Implementation-Vendor"   : mod_authors,
                     "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")])
     }
-    finalizedBy 'reobfJar'
 }
 
 tasks.withType(JavaCompile).configureEach {
