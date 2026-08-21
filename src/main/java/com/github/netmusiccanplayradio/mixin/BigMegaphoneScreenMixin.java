@@ -16,9 +16,12 @@ import org.spongepowered.asm.mixin.injection.Redirect;
  * 因此改为把渲染时的翻译 key 从 {@code gui.netmusic.big_megaphone.url.tips}
  * 重定向到本 mod 命名空间下的 {@code gui.netmusiccanplayradio.url.tips}（无冲突，必生效）。
  * <p>
- * 注意：{@code remap = false} —— 注入的是 mod 类（不参与 MC 混淆映射）。
+ * 注意：此处<b>必须用默认 remap（不能 false）</b> —— 目标 {@code Component.translatable}
+ * 是 MC 类方法，Modrinth 发布的 NetMusic jar 是 SRG 映射（运行时该方法名为
+ * {@code m_237115_}），remap=false 会导致 target 匹配不到而崩溃；目标类
+ * BigMegaphoneScreen 是 mod 类（不在映射表），类名与方法名不受影响。
  */
-@Mixin(value = BigMegaphoneScreen.class, remap = false)
+@Mixin(value = BigMegaphoneScreen.class)
 public abstract class BigMegaphoneScreenMixin {
     /** render 中所有 Component.translatable(String) 调用都会经过这里（含 url.tips 与 name.tips），按 key 分流 */
     @Redirect(method = "render",
