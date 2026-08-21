@@ -18,7 +18,6 @@
   - 无扩展名 URL（电台 mount 点）自动识别为直播流；
   - 初次连接失败立即提示"播放失败"，不静默无声；
 - **内置预置电台**（开箱即用：幻想乡电台、r/a/dio、SomaFM、Radio Paradise、Nightride FM 等 + 原版 CNR 台）；
-- **我的电台**：玩家自定义电台列表（编辑 `config/netmusiccanplayradio/stations.json` 添加，大喇叭界面底部进入）；
 - **断线重连 HUD 提示**（"网络不佳，正在重连…"，防刷屏节流）；
 - 不改变 .m3u8（HLS）播放路径：AAC + MPEG-TS 无加密 m3u8 仍由 NetMusic 原生支持。
 
@@ -64,8 +63,7 @@ cd NetMusicCanPlayRadio
 - 挂接点：`AudioStreamHandlerManager.registerHandler`（NetMusic 官方 wiki 开放的扩展 API，在 `FMLLoadCompleteEvent` 冻结列表前于 mod 构造函数注册）；
 - 校验放宽：单个 Mixin 注入 `BigMegaphoneUtil.isValidStreamUrl`（`remap=false`），GUI / 服务端 / 预置电台过滤四处校验点一次性生效；
 - 优先级：Icecast 处理器优先级 50，介于 NetMusic 的 M3u8Handler(100) 与 DirectHttpHandler(0) 之间；
-- 重连策略：HTTP 4xx（403/404 等源站明确拒绝）立即停止重试；仅网络层错误（超时/重置）指数退避重连，封顶 3 次——避免"重连风暴"触发源站按 IP 的连接限制（详见 docs/10）；
-- 自定义电台：`config/netmusiccanplayradio/stations.json`（`[{"name":"…","url":"…"}]`，与内置预置同格式），在大喇叭界面底部"我的电台"中选择，仅调用 NetMusic 的 public API，不侵入其内部类。
+- 重连策略：HTTP 4xx（403/404 等源站明确拒绝）立即停止重试；仅网络层错误（超时/重置）指数退避重连，封顶 3 次——避免"重连风暴"触发源站按 IP 的连接限制（详见 docs/10）。
 
 ## 分支说明 / Branches
 
