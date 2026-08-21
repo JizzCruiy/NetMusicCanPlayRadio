@@ -74,6 +74,8 @@ public class IcecastStreamHandler implements IAudioStreamHandler {
     public AudioInputStream handle(URL url) throws UnsupportedAudioFileException, IOException {
         URL streamUrl = resolvePlaylistIfNeeded(url);
         ReconnectingIcyStream stream = new ReconnectingIcyStream(streamUrl);
+        // 初次连接失败（源站拒绝 4xx / 网络错误）立即抛出，让 NetMusic 走"播放失败"提示而不是静默无声
+        stream.throwIfInitialFailed();
         // 大缓冲：让 javazoom/jaad 的 SPI 嗅探器有足够的 mark/reset 空间识别格式
         BufferedInputStream bis = new BufferedInputStream(stream, 128 * 1024);
         return AudioSystem.getAudioInputStream(bis);
