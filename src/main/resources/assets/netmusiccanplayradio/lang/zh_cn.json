@@ -1,4 +1,11 @@
 {
   "mod.name": "NetMusicCanPlayRadio",
-  "mod.description": "网络音乐机附属：大喇叭直接播放 Icecast/Shoutcast 电台流（幻想乡电台等）与 .pls/.m3u 播放列表"
+  "mod.description": "网络音乐机附属：大喇叭直接播放 Icecast/Shoutcast 电台流（幻想乡电台等）与 .pls/.m3u 播放列表",
+  "message.netmusiccanplayradio.reconnecting": "网络不佳，正在重连…",
+  "gui.netmusiccanplayradio.my_stations": "我的电台",
+  "gui.netmusiccanplayradio.my_stations.title": "我的电台",
+  "gui.netmusiccanplayradio.my_stations.empty": "暂无自定义电台，请在下面的文件中添加",
+  "gui.netmusiccanplayradio.page.previous": "上一页",
+  "gui.netmusiccanplayradio.page.next": "下一页",
+  "gui.netmusiccanplayradio.back": "返回"
 }
