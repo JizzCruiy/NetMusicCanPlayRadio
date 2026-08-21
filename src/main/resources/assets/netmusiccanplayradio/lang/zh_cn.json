@@ -2,7 +2,6 @@
   "mod.name": "NetMusicCanPlayRadio",
   "mod.description": "网络音乐机附属：大喇叭直接播放 Icecast/Shoutcast 电台流（幻想乡电台等）与 .pls/.m3u 播放列表",
   "message.netmusiccanplayradio.reconnecting": "网络不佳，正在重连…",
-  "gui.netmusiccanplayradio.url.tips": "输入电台直链或 m3u8 地址",
   "gui.netmusiccanplayradio.manage_stations": "管理电台",
   "gui.netmusiccanplayradio.manage_stations.title": "管理电台",
   "gui.netmusiccanplayradio.manage_stations.empty": "暂无自定义电台，点下面的按钮添加",
