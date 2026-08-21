@@ -9,7 +9,8 @@
   ],
   "client": [
     "BigMegaphonePresetManagerMixin",
-    "BigMegaphonePresetPickerScreenMixin"
+    "BigMegaphonePresetPickerScreenMixin",
+    "BigMegaphoneScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

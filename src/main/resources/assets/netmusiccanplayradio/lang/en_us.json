@@ -2,6 +2,7 @@
   "mod.name": "NetMusicCanPlayRadio",
   "mod.description": "Net Music addon: play Icecast/Shoutcast live radio streams (Gensokyo Radio, etc.) and .pls/.m3u playlists directly on the Big Megaphone",
   "message.netmusiccanplayradio.reconnecting": "Network unstable, reconnecting…",
+  "gui.netmusiccanplayradio.url.tips": "Enter a stream URL or m3u8 address",
   "gui.netmusiccanplayradio.manage_stations": "Manage Stations",
   "gui.netmusiccanplayradio.manage_stations.title": "Manage Stations",
   "gui.netmusiccanplayradio.manage_stations.empty": "No custom stations. Use the button below to add",
