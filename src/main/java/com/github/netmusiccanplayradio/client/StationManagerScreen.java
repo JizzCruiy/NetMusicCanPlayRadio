@@ -62,29 +62,29 @@ public class StationManagerScreen extends Screen {
                     .build());
         }
 
-        // 操作行：添加电台（全宽）
+        // 操作行：页码居中（y+134），"添加电台"按钮放同一行右侧，互不重叠
         this.addRenderableWidget(Button.builder(Component.translatable("gui.netmusiccanplayradio.add_station"),
                         b -> openEditor(-1, "", ""))
-                .pos(this.leftPos, this.topPos + 140)
-                .size(240, 20)
+                .pos(this.leftPos + 164, this.topPos + 134)
+                .size(76, 20)
                 .build());
 
         // 分页行：上一页 / 返回 / 下一页
         Button previous = Button.builder(Component.translatable("gui.netmusiccanplayradio.page.previous"), b -> doPrevious())
-                .pos(this.leftPos, this.topPos + 164)
+                .pos(this.leftPos, this.topPos + 158)
                 .size(76, 20)
                 .build();
         previous.active = this.page > 0;
         this.addRenderableWidget(previous);
 
         this.addRenderableWidget(Button.builder(Component.translatable("gui.netmusiccanplayradio.back"), b -> this.onClose())
-                .pos(this.leftPos + 82, this.topPos + 164)
+                .pos(this.leftPos + 82, this.topPos + 158)
                 .size(76, 20)
                 .build());
 
         int maxPage = getMaxPage();
         Button next = Button.builder(Component.translatable("gui.netmusiccanplayradio.page.next"), b -> doNext(maxPage))
-                .pos(this.leftPos + 164, this.topPos + 164)
+                .pos(this.leftPos + 164, this.topPos + 158)
                 .size(76, 20)
                 .build();
         next.active = this.page < maxPage;
