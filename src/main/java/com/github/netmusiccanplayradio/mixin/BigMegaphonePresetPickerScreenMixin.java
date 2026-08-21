@@ -3,8 +3,8 @@ package com.github.netmusiccanplayradio.mixin;
 import com.github.netmusiccanplayradio.client.StationManagerScreen;
 import com.github.tartaricacid.netmusic.client.gui.BigMegaphonePresetPickerScreen;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -18,20 +18,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  * 注入 {@code rebuildPresetButtons}（翻页时会 clearWidgets 后重建，本按钮随每次重建追加，
  * 因此翻页不会丢失）；点击打开 {@link StationManagerScreen} 管理玩家自定义电台。
  * <p>
+ * 实现说明：{@code addRenderableWidget} 是 {@link Screen} 的 protected final 方法，
+ * Mixin 的 @Shadow 无法指向父类 final 方法（会导致注入失败崩溃），因此本 Mixin 类
+ * 直接 {@code extends Screen}，使注入代码能通过 this 调用该方法（Mixin 类本身不实例化，
+ * 仅编译期继承，无运行时开销）。
+ * <p>
  * 注意：{@code remap = false} —— 注入的是 mod 类（不参与 MC 混淆映射）。
  */
 @Mixin(value = BigMegaphonePresetPickerScreen.class, remap = false)
-public abstract class BigMegaphonePresetPickerScreenMixin {
+public abstract class BigMegaphonePresetPickerScreenMixin extends Screen {
     @Shadow
     private int leftPos;
 
     @Shadow
     private int topPos;
 
-    /** 目标类继承自 Screen 的 protected 方法，@Shadow 声明以便在注入代码中调用 */
-    @Shadow
-    protected final <T extends AbstractWidget> T addRenderableWidget(T widget) {
-        throw new AssertionError("shadow");
+    /** 仅为编译期提供 this.addRenderableWidget 的访问（Mixin 类不实例化） */
+    protected BigMegaphonePresetPickerScreenMixin() {
+        super(Component.empty());
     }
 
     @Inject(method = "rebuildPresetButtons", at = @At("RETURN"))
