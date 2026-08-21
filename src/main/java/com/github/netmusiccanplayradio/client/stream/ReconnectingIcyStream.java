@@ -11,7 +11,6 @@ import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -33,10 +32,14 @@ import java.util.concurrent.atomic.AtomicLong;
  * 支持批量 {@code read(byte[], off, len)}，且批量读取不会跨越 ICY 元数据边界。
  */
 public class ReconnectingIcyStream extends InputStream {
-    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
     /** 重连次数封顶：3 次（ExoPlayer 默认区间 2~3），避免"重连风暴"触发源站 IP 限制 */
     private static final int MAX_RETRIES = 3;
     private static final int INITIAL_BACKOFF_MS = 1000;
+
+    // 注意：不设 HttpRequest.timeout —— java.net.http 的请求超时对"流式响应体"的覆盖范围
+    // 在 JDK 各版本行为不一致（见 OpenJDK JDK-8383522），实测在 Java 21 下会每 ~10 秒截断
+    // 一次仍在读取的直播流（表现为周期性断流+重连）。连接建立超时由 NetMusic 的
+    // NetWorker.HTTP_CLIENT.connectTimeout(5s) 兜底即可。
 
     /** 通用浏览器 UA：不暴露 mod 身份，避免源站按 UA 过滤（实测三种 UA 均 200，此处取最稳妥） */
     private static final String USER_AGENT =
@@ -93,7 +96,6 @@ public class ReconnectingIcyStream extends InputStream {
     /** 建立（或重建）HTTP 连接，解析 Icy-MetaInt */
     private void connect() throws IOException {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url.toString()))
-                .timeout(CONNECT_TIMEOUT)
                 .header(HttpHeaders.USER_AGENT, USER_AGENT)
                 .header("Icy-MetaInt", "1")          // 请求 ICY 元数据（服务器可忽略）
                 .GET().build();
