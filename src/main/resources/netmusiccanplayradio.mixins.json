@@ -7,6 +7,10 @@
   "mixins": [
     "BigMegaphoneUtilMixin"
   ],
+  "client": [
+    "BigMegaphonePresetManagerMixin",
+    "BigMegaphonePresetPickerScreenMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }

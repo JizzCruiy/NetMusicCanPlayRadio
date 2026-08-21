@@ -18,6 +18,7 @@
   - 无扩展名 URL（电台 mount 点）自动识别为直播流；
   - 初次连接失败立即提示"播放失败"，不静默无声；
 - **内置预置电台**（开箱即用：幻想乡电台、r/a/dio、SomaFM、Radio Paradise、Nightride FM 等 + 原版 CNR 台）；
+- **预设电台管理**：在"选择预设电台"页面可**添加 / 修改 / 删除**自己的电台（存于 `config/netmusiccanplayradio/stations.json`，与内置预置同一列表一起翻页显示）；
 - **断线重连 HUD 提示**（"网络不佳，正在重连…"，防刷屏节流）；
 - 不改变 .m3u8（HLS）播放路径：AAC + MPEG-TS 无加密 m3u8 仍由 NetMusic 原生支持。
 
@@ -63,7 +64,8 @@ cd NetMusicCanPlayRadio
 - 挂接点：`AudioStreamHandlerManager.registerHandler`（NetMusic 官方 wiki 开放的扩展 API，在 `FMLLoadCompleteEvent` 冻结列表前于 mod 构造函数注册）；
 - 校验放宽：单个 Mixin 注入 `BigMegaphoneUtil.isValidStreamUrl`（`remap=false`），GUI / 服务端 / 预置电台过滤四处校验点一次性生效；
 - 优先级：Icecast 处理器优先级 50，介于 NetMusic 的 M3u8Handler(100) 与 DirectHttpHandler(0) 之间；
-- 重连策略：HTTP 4xx（403/404 等源站明确拒绝）立即停止重试；仅网络层错误（超时/重置）指数退避重连，封顶 3 次——避免"重连风暴"触发源站按 IP 的连接限制（详见 docs/10）。
+- 重连策略：HTTP 4xx（403/404 等源站明确拒绝）立即停止重试；仅网络层错误（超时/重置）指数退避重连，封顶 3 次——避免"重连风暴"触发源站按 IP 的连接限制（详见 docs/10）；
+- 预设电台管理：玩家自定义台存于 `config/netmusiccanplayradio/stations.json`（`[{"name":"…","url":"…"}]`），由 Mixin 在 NetMusic 的 `BigMegaphonePresetManager` 加载后合并进其列表，因此作者原生的"选择预设电台"页面（含分页）直接显示合并结果；添加/修改/删除走"管理电台"界面，写配置后重调 NetMusic 的 public `loadBundledStations()` 刷新。
 
 ## 分支说明 / Branches
 
