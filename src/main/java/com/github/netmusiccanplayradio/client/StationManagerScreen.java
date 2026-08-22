@@ -3,6 +3,7 @@ package com.github.netmusiccanplayradio.client;
 import com.github.tartaricacid.netmusic.client.gui.BigMegaphonePresetPickerScreen;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Renderable;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
@@ -157,7 +158,11 @@ public class StationManagerScreen extends Screen {
             graphics.drawCenteredString(this.font, pageText, this.width / 2, this.topPos + 134, 0xAAAAAA);
         }
 
-        super.render(graphics, mouseX, mouseY, partialTicks);
+        // 注意：1.21.1 不能调 super.render —— 其内部会再次执行带模糊的 renderBackground，
+        // 覆盖掉上面绘制的前景文字（NetMusic 1.21 的 Screen 同样手动遍历 renderables）
+        for (Renderable renderable : this.renderables) {
+            renderable.render(graphics, mouseX, mouseY, partialTicks);
+        }
     }
 
     @Override
