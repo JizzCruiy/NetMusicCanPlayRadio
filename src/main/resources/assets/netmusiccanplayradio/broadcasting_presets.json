@@ -20,23 +20,15 @@
     "url": "https://stream.gensokyoradio.net/3"
   },
   {
-    "name": "r/a/dio 动漫音乐",
-    "url": "https://relay0.r-a-d.io/main.mp3"
+    "name": "AniSonFM",
+    "url": "http://pool.anison.fm:9000/AniSonFM(320)?"
   },
   {
-    "name": "SomaFM Groove Salad",
-    "url": "https://ice1.somafm.com/groovesalad-128-mp3"
+    "name": "Keygen FM",
+    "url": "https://keygen-fm.kodatek.app/listen/keygen-fm/radio.mp3"
   },
   {
-    "name": "Radio Paradise",
-    "url": "https://stream.radioparadise.com/mp3-128"
-  },
-  {
-    "name": "Nightride FM（Synthwave）",
-    "url": "https://stream.nightride.fm/nightride.mp3"
-  },
-  {
-    "name": "宁海新闻综合广播 FM98.9",
-    "url": "https://lhttp-hw.qtfm.cn/live/5022406/64k.mp3"
+    "name": "Kawaii Music",
+    "url": "https://kawaii-music.stream.laut.fm/kawaii-music"
   }
 ]
