@@ -13,18 +13,22 @@
 - 大喇叭 URL 校验放宽：接受任意 http(s) 直播流直链（不再只认 .m3u8）；
 - 新增 Icecast/Shoutcast 流处理器（通过 NetMusic 官方扩展点 `AudioStreamHandlerManager.registerHandler` 注册）：
   - 自动剥离 **ICY 元数据**（Shoutcast 内嵌"正在播放"数据，不剥离会导致解码错乱）；
-  - **断流自动重连**（指数退避，适合 24/7 电台）；
+  - **断流自动重连**（指数退避，最多 3 次；**源站明确拒绝 HTTP 4xx 时不重试**，避免触发源站 IP 限制）；
   - **.pls / .m3u 播放列表**自动解析出真实流地址；
   - 无扩展名 URL（电台 mount 点）自动识别为直播流；
+  - 初次连接失败立即提示"播放失败"，不静默无声；
+- **内置预置电台**（开箱即用：幻想乡电台、r/a/dio、SomaFM、Radio Paradise、Nightride FM 等 + 原版 CNR 台）；
+- **预设电台管理**：在"选择预设电台"页面可**添加 / 修改 / 删除**自己的电台（存于 `config/netmusiccanplayradio/stations.json`，与内置预置同一列表一起翻页显示）；
+- **断线重连 HUD 提示**（"网络不佳，正在重连…"，防刷屏节流）；
 - 不改变 .m3u8（HLS）播放路径：AAC + MPEG-TS 无加密 m3u8 仍由 NetMusic 原生支持。
 
 ## 前置依赖 / Dependencies
 
 | 模组 | 版本 | 说明 |
 |---|---|---|
-| Minecraft | 1.20.1（Forge）/ 1.21.1（NeoForge） | Java 17 / 21 |
-| 加载器 | Forge 47.x / NeoForge 21.x | ForgeGradle 6 / NeoGradle 7 |
-| **Net Music（网络音乐机）** | **1.5.1+，必装** | 本模组无法脱离其运行（已在 mod 元数据声明 required 依赖） |
+| Minecraft | 1.20.1 | Java 17 |
+| Forge | 47.x | ForgeGradle 6 |
+| **Net Music（网络音乐机）** | **1.5.1+，必装** | 本模组无法脱离其运行（mods.toml 已声明 mandatory 依赖） |
 
 > 服务端与客户端都需要安装。
 
@@ -53,20 +57,22 @@ cd NetMusicCanPlayRadio
 ./gradlew build          # 产物在 build/libs/
 ```
 
-> 需要 JDK 17（`main` 分支）/ JDK 21（`1.21.1-neoforge` 分支）。依赖 Net Music 1.5.1 对应平台版（`1.5.1-forge+mc1.20.1` / `1.5.1-neoforge+mc1.21.1`）通过 Modrinth Maven 自动拉取，无需手动下载 jar。
+> 需要 JDK 17。依赖 Net Music 1.5.1-forge+mc1.20.1 通过 Modrinth Maven 自动拉取，无需手动下载 jar。
 
 ## 技术细节 / Technical Details
 
 - 挂接点：`AudioStreamHandlerManager.registerHandler`（NetMusic 官方 wiki 开放的扩展 API，在 `FMLLoadCompleteEvent` 冻结列表前于 mod 构造函数注册）；
 - 校验放宽：单个 Mixin 注入 `BigMegaphoneUtil.isValidStreamUrl`（`remap=false`），GUI / 服务端 / 预置电台过滤四处校验点一次性生效；
-- 优先级：Icecast 处理器优先级 50，介于 NetMusic 的 M3u8Handler(100) 与 DirectHttpHandler(0) 之间。
+- 优先级：Icecast 处理器优先级 50，介于 NetMusic 的 M3u8Handler(100) 与 DirectHttpHandler(0) 之间；
+- 重连策略：HTTP 4xx（403/404 等源站明确拒绝）立即停止重试；仅网络层错误（超时/重置）指数退避重连，封顶 3 次——避免"重连风暴"触发源站按 IP 的连接限制（详见 docs/10）；
+- 预设电台管理：玩家自定义台存于 `config/netmusiccanplayradio/stations.json`（`[{"name":"…","url":"…"}]`），由 Mixin 在 NetMusic 的 `BigMegaphonePresetManager` 加载后合并进其列表，因此作者原生的"选择预设电台"页面（含分页）直接显示合并结果；添加/修改/删除走"管理电台"界面，写配置后重调 NetMusic 的 public `loadBundledStations()` 刷新。
 
 ## 分支说明 / Branches
 
 | 分支 | MC 版本 | 加载器 | 状态 |
 |---|---|---|---|
-| `main` | 1.20.1 | Forge | 已发布 v0.1.0 |
-| `1.21.1-neoforge` | 1.21.1 | NeoForge | 已发布 v0.1.0 |
+| `main` | 1.20.1 | Forge | v0.2.0（待测试） |
+| `1.21.1-neoforge` | 1.21.1 | NeoForge | v0.2.0（待测试） |
 
 ## AI 使用声明 / AI Usage Disclosure
 

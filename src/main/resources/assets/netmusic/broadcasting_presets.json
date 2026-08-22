@@ -1,0 +1,42 @@
+[
+  {
+    "name": "CNR 中国之声",
+    "url": "https://apicnrapp.cnr.cn/html/play.html?channelId=1"
+  },
+  {
+    "name": "CNR 音乐之声",
+    "url": "https://apicnrapp.cnr.cn/html/play.html?channelId=4"
+  },
+  {
+    "name": "CNR 中国交通广播",
+    "url": "https://apicnrapp.cnr.cn/html/play.html?channelId=16"
+  },
+  {
+    "name": "CNR CGTN Radio",
+    "url": "https://sk.cri.cn/am846.m3u8"
+  },
+  {
+    "name": "幻想乡电台 Gensokyo Radio",
+    "url": "https://stream.gensokyoradio.net/3"
+  },
+  {
+    "name": "r/a/dio 动漫音乐",
+    "url": "https://relay0.r-a-d.io/main.mp3"
+  },
+  {
+    "name": "SomaFM Groove Salad",
+    "url": "https://ice1.somafm.com/groovesalad-128-mp3"
+  },
+  {
+    "name": "Radio Paradise",
+    "url": "https://stream.radioparadise.com/mp3-128"
+  },
+  {
+    "name": "Nightride FM（Synthwave）",
+    "url": "https://stream.nightride.fm/nightride.mp3"
+  },
+  {
+    "name": "宁海新闻综合广播 FM98.9",
+    "url": "https://lhttp-hw.qtfm.cn/live/5022406/64k.mp3"
+  }
+]

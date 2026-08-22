@@ -1,4 +1,21 @@
 {
   "mod.name": "NetMusicCanPlayRadio",
-  "mod.description": "Net Music addon: play Icecast/Shoutcast live radio streams (Gensokyo Radio, etc.) and .pls/.m3u playlists directly on the Big Megaphone"
+  "mod.description": "Net Music addon: play Icecast/Shoutcast live radio streams (Gensokyo Radio, etc.) and .pls/.m3u playlists directly on the Big Megaphone",
+  "message.netmusiccanplayradio.reconnecting": "Network unstable, reconnecting…",
+  "gui.netmusiccanplayradio.manage_stations": "Manage Stations",
+  "gui.netmusiccanplayradio.manage_stations.title": "Manage Stations",
+  "gui.netmusiccanplayradio.manage_stations.empty": "No custom stations. Use the button below to add",
+  "gui.netmusiccanplayradio.add_station": "Add Station",
+  "gui.netmusiccanplayradio.add_station.title": "Add Station",
+  "gui.netmusiccanplayradio.edit_station.title": "Edit Station",
+  "gui.netmusiccanplayradio.delete": "Del",
+  "gui.netmusiccanplayradio.name": "Name",
+  "gui.netmusiccanplayradio.url": "URL",
+  "gui.netmusiccanplayradio.save": "Save",
+  "gui.netmusiccanplayradio.cancel": "Cancel",
+  "gui.netmusiccanplayradio.name.empty": "Name cannot be empty",
+  "gui.netmusiccanplayradio.url.invalid": "Invalid URL (must be http/https)",
+  "gui.netmusiccanplayradio.page.previous": "Prev",
+  "gui.netmusiccanplayradio.page.next": "Next",
+  "gui.netmusiccanplayradio.back": "Back"
 }

@@ -11,24 +11,45 @@ import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.Duration;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 可自动重连、并按 ICY 协议剥离内嵌元数据的直播流输入流。
+ * 可自动重连、按 ICY 协议剥离内嵌元数据的直播流输入流。
  * <p>
  * Icecast/Shoutcast 行为：若请求带 {@code Icy-MetaInt: 1}，服务器会在音频数据流中每隔
  * {@code Icy-MetaInt} 字节插入一个 1 字节长度字段 + 元数据块（长度 × 16 字节）。
  * 播放器解码时必须把这些元数据字节剥掉，否则解码器会错乱。
  * <p>
- * 断流/网络错误时：按指数退避重新建立连接（最多 {@link #MAX_RETRIES} 次），
- * 重连后重新解析 {@code Icy-MetaInt}（服务器可能改变该值）。
- * <p>
+ * 重连策略（v0.2.0，遵循工业播放器实践，见 docs/10）：
+ * <ul>
+ *   <li>HTTP 4xx（403 封禁 / 404 不存在等）= 源站明确拒绝 → 立即失败，<b>不重试</b>
+ *       （源站常按 IP 限制并发/异常连接，重试风暴会触发更严厉限制，甚至连累同 IP 其他播放器）；</li>
+ *   <li>网络层错误（超时/重置/DNS）= 暂时性 → 指数退避重连，次数封顶
+ *       {@link #MAX_RETRIES} 次（3 次，ExoPlayer 同区间）；</li>
+ *   <li>初次连接失败会通过 {@link #throwIfInitialFailed()} 立即抛出，让上层走"播放失败"提示，
+ *       而不是静默无声。</li>
+ * </ul>
  * 支持批量 {@code read(byte[], off, len)}，且批量读取不会跨越 ICY 元数据边界。
  */
 public class ReconnectingIcyStream extends InputStream {
-    private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
-    private static final int MAX_RETRIES = 5;
+    /** 重连次数封顶：3 次（ExoPlayer 默认区间 2~3），避免"重连风暴"触发源站 IP 限制 */
+    private static final int MAX_RETRIES = 3;
     private static final int INITIAL_BACKOFF_MS = 1000;
+
+    // 注意：不设 HttpRequest.timeout —— java.net.http 的请求超时对"流式响应体"的覆盖范围
+    // 在 JDK 各版本行为不一致（见 OpenJDK JDK-8383522），实测在 Java 21 下会每 ~10 秒截断
+    // 一次仍在读取的直播流（表现为周期性断流+重连）。连接建立超时由 NetMusic 的
+    // NetWorker.HTTP_CLIENT.connectTimeout(5s) 兜底即可。
+
+    /** 通用浏览器 UA：不暴露 mod 身份，避免源站按 UA 过滤（实测三种 UA 均 200，此处取最稳妥） */
+    private static final String USER_AGENT =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
+
+    /**
+     * 当前是否有流处于"重连中"（任意流，简化版）：-1 表示无；否则为进入重连的时间戳（ms）。
+     * 供客户端 tick 检测后向玩家提示"网络不佳，正在重连…"（见 ReconnectNotifier）。
+     */
+    private static final AtomicLong RECONNECT_STARTED_AT = new AtomicLong(-1);
 
     private final URL url;
     private final int maxRetries;
@@ -38,6 +59,8 @@ public class ReconnectingIcyStream extends InputStream {
     private int bytesSinceMeta;
     private int attempts;
     private boolean closed;
+    /** 初次连接失败原因（null = 初次连接成功）；4xx 拒绝与网络错误都记录 */
+    private IOException initialFailure;
 
     public ReconnectingIcyStream(URL url) {
         this(url, MAX_RETRIES);
@@ -49,20 +72,39 @@ public class ReconnectingIcyStream extends InputStream {
         try {
             connect();
         } catch (IOException e) {
-            NetMusicCanPlayRadio.LOGGER.warn("[NetMusicCanPlayRadio] Initial connect failed for {}", url, e);
+            NetMusicCanPlayRadio.LOGGER.warn("[NetMusicCanPlayRadio] Initial connect failed for {}: {}", url, e.getMessage());
             this.current = null;
+            this.initialFailure = e;
         }
+    }
+
+    /**
+     * 若初次连接失败则抛出原因，让上层（IcecastStreamHandler → NetMusic 播放层）
+     * 立即给出"播放失败"提示，而不是静默无声。
+     */
+    public void throwIfInitialFailed() throws IOException {
+        if (this.initialFailure != null) {
+            throw this.initialFailure;
+        }
+    }
+
+    /** 当前是否有流处于重连中（时间戳，-1 表示无） */
+    public static long getReconnectStartedAt() {
+        return RECONNECT_STARTED_AT.get();
     }
 
     /** 建立（或重建）HTTP 连接，解析 Icy-MetaInt */
     private void connect() throws IOException {
         HttpRequest request = HttpRequest.newBuilder(URI.create(url.toString()))
-                .timeout(CONNECT_TIMEOUT)
-                .header(HttpHeaders.USER_AGENT, "Mozilla/5.0 NetMusicCanPlayRadio/0.1")
+                .header(HttpHeaders.USER_AGENT, USER_AGENT)
                 .header("Icy-MetaInt", "1")          // 请求 ICY 元数据（服务器可忽略）
                 .GET().build();
         HttpResponse<InputStream> response = NetWorker.send(request, HttpResponse.BodyHandlers.ofInputStream());
         int status = response.statusCode();
+        // 4xx = 源站明确拒绝（403 封禁/404 不存在等），重连无意义且会加剧限制
+        if (status >= 400 && status < 500) {
+            throw new StreamRejectedException(status);
+        }
         // 直播流通常返回 200（不支持 Range）；Shoutcast v1 可能返回 200 + ICY 头
         if (status < 200 || status >= 300) {
             throw new IOException("Stream request failed: HTTP " + status);
@@ -123,6 +165,12 @@ public class ReconnectingIcyStream extends InputStream {
                 }
                 // n == 0（如刚好停在元数据边界）→ 继续循环
             } catch (IOException e) {
+                // 4xx 拒绝：立即结束，不重连（源站明确拒绝，重试无意义且加剧限制）
+                if (e instanceof StreamRejectedException) {
+                    NetMusicCanPlayRadio.LOGGER.warn("[NetMusicCanPlayRadio] Stream rejected (HTTP {}) for {}: no more retries",
+                            ((StreamRejectedException) e).getStatusCode(), url);
+                    return -1;
+                }
                 NetMusicCanPlayRadio.LOGGER.debug("[NetMusicCanPlayRadio] Read error on {}: {}", url, e.getMessage());
                 if (!reconnect()) {
                     throw e;
@@ -177,21 +225,32 @@ public class ReconnectingIcyStream extends InputStream {
         }
     }
 
-    /** 指数退避重连；超过最大次数返回 false */
+    /** 指数退避重连；超过最大次数返回 false。4xx 拒绝不重试。 */
     private boolean reconnect() {
         if (closed || attempts >= maxRetries) {
+            clearReconnectState();
             return false;
         }
+        // 记录重连开始时间（供"网络不佳"提示使用；全局简化版：多流并发时取首个）
+        RECONNECT_STARTED_AT.compareAndSet(-1, System.currentTimeMillis());
         long backoff = INITIAL_BACKOFF_MS << Math.min(attempts, 4);
         try {
             Thread.sleep(backoff);
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
+            clearReconnectState();
             return false;
         }
         try {
             connect();
+            clearReconnectState();
             return true;
+        } catch (StreamRejectedException e) {
+            // 4xx：不重试，直接结束
+            NetMusicCanPlayRadio.LOGGER.warn("[NetMusicCanPlayRadio] Stream rejected (HTTP {}) for {}: no more retries",
+                    e.getStatusCode(), url);
+            clearReconnectState();
+            return false;
         } catch (IOException e) {
             NetMusicCanPlayRadio.LOGGER.warn("[NetMusicCanPlayRadio] Reconnect {}/{} failed for {}: {}",
                     attempts, maxRetries, url, e.getMessage());
@@ -199,11 +258,30 @@ public class ReconnectingIcyStream extends InputStream {
         }
     }
 
+    private static void clearReconnectState() {
+        RECONNECT_STARTED_AT.set(-1);
+    }
+
     @Override
     public void close() throws IOException {
         this.closed = true;
+        clearReconnectState();
         if (current != null) {
             current.close();
+        }
+    }
+
+    /** 源站明确拒绝（HTTP 4xx）：区别于一般网络错误的信号，调用方据此不重试 */
+    public static final class StreamRejectedException extends IOException {
+        private final int statusCode;
+
+        public StreamRejectedException(int statusCode) {
+            super("Stream rejected by server: HTTP " + statusCode);
+            this.statusCode = statusCode;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
         }
     }
 }
